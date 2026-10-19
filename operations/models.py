@@ -106,3 +106,9 @@ class LocationShare(models.Model):
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
     accuracy_m = models.FloatField(null=True)
+
+
+class AccountSecurity(models.Model):
+    """Explicitly provisioned/recovered accounts must replace their temporary password."""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="account_security")
+    must_change_password = models.BooleanField(default=True)

@@ -45,7 +45,7 @@ def administrator(view):
 
 @login_required
 def dashboard(request):
-    return render(request, "dashboard.html", {"open_enquiries": Enquiry.objects.exclude(status="closed").count() if request.user.is_superuser else None, "active_jobs": ServiceJob.objects.exclude(status="completed").count() if request.user.is_superuser else None, "employee_count": Employee.objects.count(), "assignment_count": Assignment.objects.count(), "recent": Assignment.objects.select_related("employee")[:5]})
+    return render(request, "dashboard.html", {"open_enquiries": Enquiry.objects.exclude(status="closed").count() if request.user.is_superuser else None, "active_jobs": ServiceJob.objects.exclude(status="completed").count() if request.user.is_superuser else None, "employee_count": Employee.objects.count(), "assignment_count": Assignment.objects.count(), "recent": Assignment.objects.select_related("employee").defer("employee__salary_amount", "employee__salary_currency", "employee__salary_basis")[:5]})
 
 @login_required
 def employees(request):
@@ -56,7 +56,7 @@ def employees(request):
 @administrator
 def employee_form(request, pk=None):
     employee = get_object_or_404(Employee, pk=pk) if pk else None
-    form = EmployeeForm(request.POST or None, instance=employee)
+    form = EmployeeForm(request.POST if request.method == "POST" else None, instance=employee)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
             record = form.save()
@@ -67,12 +67,12 @@ def employee_form(request, pk=None):
 
 @login_required
 def assignments(request):
-    return render(request, "assignments.html", {"assignments": Assignment.objects.select_related("employee", "created_by")})
+    return render(request, "assignments.html", {"assignments": Assignment.objects.select_related("employee", "created_by").defer("employee__salary_amount", "employee__salary_currency", "employee__salary_basis")})
 
 @login_required
 def assignment_form(request, pk=None):
     item = get_object_or_404(Assignment, pk=pk) if pk else None
-    form = AssignmentForm(request.POST or None, instance=item)
+    form = AssignmentForm(request.POST if request.method == "POST" else None, instance=item)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
             record = form.save(commit=False)

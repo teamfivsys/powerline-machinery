@@ -165,3 +165,26 @@ class ForegroundLocationTests(TestCase):
         with patch('operations.management.commands.create_technician.getpass',side_effect=['a','b']):
             with self.assertRaises(CommandError):call_command('create_technician','provisioned',e.pk,stdout=StringIO())
         self.assertFalse(get_user_model().objects.filter(username='provisioned').exists())
+
+    def test_late_ping_cannot_write_after_concurrent_completion(self):
+        from unittest.mock import patch
+        token=self.start()
+        stale=ServiceJob.objects.get(pk=self.job.pk)
+        ServiceJob.objects.filter(pk=self.job.pk).update(status="completed", work_done="Test complete")
+        with patch("operations.location_views.assigned_job",return_value=stale):
+            self.assertEqual(self.ping(token).status_code,409)
+        self.assertIsNone(LocationShare.objects.get().latitude)
+    def test_late_ping_cannot_overwrite_newer_concurrent_sample(self):
+        from unittest.mock import patch
+        from django.db.models.query import QuerySet
+        token=self.start();old=timezone.now()-timedelta(seconds=10);newer=timezone.now()
+        LocationShare.objects.update(captured_at=old,latitude=1.0)
+        original=QuerySet.first
+        def race(query):
+            result=original(query)
+            if query.model is LocationShare and result:
+                LocationShare.objects.filter(pk=result.pk).update(captured_at=newer,latitude=2.0)
+            return result
+        with patch.object(QuerySet,"first",race):
+            self.assertEqual(self.ping(token,captured_at=(old+timedelta(seconds=1)).isoformat(),latitude='3.0').status_code,409)
+        self.assertEqual(LocationShare.objects.get().latitude,2.0)

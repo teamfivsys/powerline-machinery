@@ -1,3 +1,5 @@
+Current version: v0.6. Read HANDOVER_v0.6.md first for onboarding, recovery and release gates. The earlier instructions below are historical where superseded.
+
 # Historical operating guide — v0.1
 
 For current v0.3 instructions see OPERATING_GUIDE_v0.3.md and the top-level README. The content below is preserved history, not current feature status.

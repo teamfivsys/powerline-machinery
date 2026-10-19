@@ -37,6 +37,7 @@ from datetime import timedelta
 from operations.models import *
 import uuid
 u=get_user_model().objects.get(username='pg_fictional_admin');e=Employee.objects.get(name='Fictional PG Employee')
+AccountSecurity.objects.create(user=u, must_change_password=False)
 assert str(e.salary_amount)=='1234.56' and Assignment.objects.count()==1
 q=Enquiry.objects.create(customer_name='Fictional PG Customer',kind='service',summary='Fictional enquiry',details='Test',created_by=u)
 j=ServiceJob.objects.create(customer_name=q.customer_name,enquiry=q,machine='Fictional forklift',fault='Fictional fault',technician=e,created_by=u)
@@ -66,20 +67,20 @@ print('SESSION_KEY='+s.session_key)
             testenv={**env,'DJANGO_SETTINGS_MODULE':'config.test_settings','DJANGO_DEBUG':'1'}
             testenv.pop('VERCEL',None)
             suite=manage('test',env_override=testenv)
-            (ROOT/'evidence/v0.4/postgresql-tests.txt').write_text(suite.stdout+suite.stderr)
+            (ROOT/'evidence/v0.6/postgresql-tests.txt').write_text(suite.stdout+suite.stderr)
             checks.append('Full regression suite passed on local TLS-enabled PostgreSQL')
             # Explicit privacy-aware backup; never includes GPS samples, sessions or throttle state.
             run([pg/'pg_dump',*pgargs,'--format=custom','--no-owner','--no-acl','--exclude-table-data=operations_locationshare','--exclude-table-data=django_session','--exclude-table-data=login_throttle','--file',private/'business.dump','powerline'])
             run([pg/'pg_restore',*pgargs,'--no-owner','--no-acl','--exit-on-error','--dbname=restored',private/'business.dump'])
             restoreenv={**env,'DATABASE_URL':url.replace('/powerline?','/restored?')}
-            manage('shell','-c',"from operations.models import *; from django.contrib.auth import get_user_model; from django.contrib.sessions.models import Session; assert Employee.objects.count()==Assignment.objects.count()==Enquiry.objects.count()==ServiceJob.objects.count()==TechnicianAccess.objects.count()==1; assert LocationShare.objects.count()==Session.objects.count()==0; assert get_user_model().objects.get(username='pg_fictional_admin').check_password('Fictional-test-password-2026!')",env_override=restoreenv)
+            manage('shell','-c',"from operations.models import *; from django.contrib.auth import get_user_model; from django.contrib.sessions.models import Session; assert Employee.objects.count()==Assignment.objects.count()==Enquiry.objects.count()==ServiceJob.objects.count()==TechnicianAccess.objects.count()==1; assert LocationShare.objects.count()==Session.objects.count()==0; assert AccountSecurity.objects.count()==1 and not AccountSecurity.objects.get().must_change_password; assert get_user_model().objects.get(username='pg_fictional_admin').check_password('Fictional-test-password-2026!')",env_override=restoreenv)
             checks.append('pg_dump/pg_restore to separate database recovered five business tables and administrator password; GPS samples and sessions excluded')
             # Verify TLS was actually negotiated, not just requested.
             result=run([pg/'psql',url,'-Atc','SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()'])
             assert result.stdout.strip()=='t'
             checks.append('PostgreSQL reported TLS active on the rehearsal connection')
             report={'checks':checks,'count':len(checks),'scope':'Local PostgreSQL with self-signed test TLS; no external provider/Vercel deployment. Temporary cluster and data destroyed after completion.'}
-            (ROOT/'evidence/v0.4/postgresql-rehearsal.json').write_text(json.dumps(report,indent=2))
+            (ROOT/'evidence/v0.6/postgresql-rehearsal.json').write_text(json.dumps(report,indent=2))
             print(json.dumps(report,indent=2))
         finally:run([pg/'pg_ctl','-D',private/'cluster','-m','fast','-w','stop'])
 if __name__=='__main__':main()

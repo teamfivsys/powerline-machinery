@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -90,7 +91,7 @@ def location_ping(request, pk):
     if share is None: return JsonResponse({"error":"Sharing stopped or expired. Start again to share."},status=409)
     if share.captured_at and captured < share.captured_at: return JsonResponse({"error":"Out-of-order sample rejected."},status=400)
     # Conditional update prevents a stopped/reassigned session being recreated by a late ping.
-    changed=LocationShare.objects.filter(pk=share.pk,token=token,user=request.user,expires_at__gt=now,job__technician_id=request.technician_employee_id).update(latitude=round(lat,6),longitude=round(lon,6),accuracy_m=round(accuracy,1),captured_at=captured,expires_at=min(now,captured)+timedelta(seconds=TTL_SECONDS))
+    changed=LocationShare.objects.filter(pk=share.pk,token=token,user=request.user,expires_at__gt=now,job__technician_id=request.technician_employee_id).exclude(job__status="completed").filter(Q(captured_at__isnull=True) | Q(captured_at__lte=captured)).update(latitude=round(lat,6),longitude=round(lon,6),accuracy_m=round(accuracy,1),captured_at=captured,expires_at=min(now,captured)+timedelta(seconds=TTL_SECONDS))
     if not changed: return JsonResponse({"error":"Sharing session ended."},status=409)
     return JsonResponse({"saved":True,"expires_in":TTL_SECONDS})
 

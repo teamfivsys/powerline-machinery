@@ -1,4 +1,4 @@
-# Requirements mapping — v0.4
+# Requirements mapping — v0.6
 
 Baseline: client-requirements PRD v0.2; later owner-accepted initial CRM/Maintenance flows and both job progress + GPS. This implementation is not a declaration of complete client acceptance.
 
@@ -10,7 +10,7 @@ Baseline: client-requirements PRD v0.2; later owner-accepted initial CRM/Mainten
 | Machine/fault, assign technician, work/completion | Admin service job linked to existing employee, optional Service enquiry | Work done required at completion; not complete asset/inventory register |
 | Technician service updates | Explicit employee/login mapping; assigned-job status/work-done only | No arbitrary job/CRM/dispatcher/salary access |
 | Both field-job updates and GPS | Above service updates + opt-in foreground browser GPS, Start/Stop, latest sample, accuracy/age/expiry; admin dispatch view | Not continuous background GPS; real Android/HTTPS testing pending |
-| Usable access and correct Powerline identity | Server-side sign-in/password changes; responsive Powerline Machinery UI | No activation/recovery email, notifications or branded domain |
+| Usable access and correct Powerline identity | Server-side sign-in/password changes; first-use replacement and assisted terminal recovery; responsive Powerline Machinery UI | No activation/recovery email, notifications or branded domain |
 | Laptop/Android usability | Desktop/narrow Chromium inspection and smoke tests | Physical Android/device permission/lifecycle checks pending |
 | Working final system and guided handover | Runnable source, setup guide, PostgreSQL/Vercel preparation and local recovery evidence | Not publicly deployed or client-ready handover |
 
@@ -18,4 +18,4 @@ CRM and Maintenance are no longer placeholder modules. The owner accepted broad 
 
 No inventory accounting, automated notifications, payment/invoicing, payroll or route-history features were inferred from the business type. No new external services or account changes.
 
-Hosting preparation does not close hosted onboarding, domain, retention, real-device, production restore or final acceptance gaps. See VERCEL_PREPARATION_v0.4.md.
+Hosting preparation does not close hosted onboarding, domain, retention, real-device, production restore or final acceptance gaps. See HANDOVER_v0.6.md and historical VERCEL_PREPARATION_v0.4.md.

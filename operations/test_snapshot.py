@@ -51,3 +51,13 @@ class SnapshotTests(TestCase):
         self.assertEqual(result['table_counts']['operations_locationshare'],0)
         self.assertNotIn(b'fictional-sensitive-location',(self.root/'location-free.sqlite3').read_bytes())
         with sqlite3.connect(self.source) as c:self.assertEqual(c.execute("SELECT count(*) FROM operations_locationshare").fetchone()[0],1)
+
+    def test_account_recovery_gate_is_preserved(self):
+        with sqlite3.connect(self.source) as c:
+            c.execute("CREATE TABLE operations_accountsecurity (id INTEGER PRIMARY KEY, must_change_password INTEGER)")
+            c.execute("INSERT INTO operations_accountsecurity VALUES (1, 1)")
+        dest=self.root/'recovery-gate.sqlite3'
+        result=snapshot(self.source,dest)
+        self.assertEqual(result['table_counts']['operations_accountsecurity'],1)
+        with sqlite3.connect(dest) as c:
+            self.assertEqual(c.execute('SELECT must_change_password FROM operations_accountsecurity').fetchone()[0],1)

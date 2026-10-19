@@ -11,6 +11,9 @@ class EmployeeForm(forms.ModelForm):
         if not re.fullmatch(r"[A-Z]{3}", code): raise forms.ValidationError("Enter a three-letter currency code, such as AED or INR; confirm the currency first.")
         return code
 class AssignmentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["employee"].queryset = Employee.objects.only("id", "name")
     class Meta:
         model = Assignment
         fields = ["title", "employee", "description"]

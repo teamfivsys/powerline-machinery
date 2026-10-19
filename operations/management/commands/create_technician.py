@@ -5,7 +5,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from operations.models import Employee, TechnicianAccess
+from operations.models import Employee, TechnicianAccess, AccountSecurity
 class Command(BaseCommand):
     help='Create a non-administrator technician login and explicitly link an employee. Password is requested privately.'
     def add_arguments(self,p):p.add_argument('username');p.add_argument('employee_id',type=int)
@@ -21,5 +21,5 @@ class Command(BaseCommand):
         try:user.full_clean(exclude=['password']);validate_password(password,user)
         except ValidationError as exc:raise CommandError('; '.join(exc.messages))
         with transaction.atomic():
-            user.set_password(password);user.save();TechnicianAccess.objects.create(user=user,employee=e)
+            user.set_password(password);user.save();TechnicianAccess.objects.create(user=user,employee=e);AccountSecurity.objects.create(user=user)
         self.stdout.write(self.style.SUCCESS('Technician login created and employee linked. No administrator permission granted.'))

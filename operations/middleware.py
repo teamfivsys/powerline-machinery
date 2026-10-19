@@ -15,3 +15,17 @@ class PrivateResponseMiddleware:
         if not request.path.startswith("/static/"):
             response["Cache-Control"] = "no-store, private"
         return response
+
+
+class PasswordReplacementMiddleware:
+    """No operational access with an administrator-issued temporary credential."""
+    def __init__(self, get_response): self.get_response = get_response
+    def __call__(self, request):
+        from django.shortcuts import redirect
+        from .models import AccountSecurity
+        if (request.user.is_authenticated
+            and request.path not in ("/password/change/", "/logout/")
+            and not request.path.startswith("/static/")
+            and AccountSecurity.objects.filter(user=request.user, must_change_password=True).exists()):
+            return redirect("password_change")
+        return self.get_response(request)

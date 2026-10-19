@@ -140,7 +140,7 @@ LocationShare.objects.create(job=j,user=o,token=uuid.uuid4(),started_at=timezone
             restore=snapshot('restore-new',private/'backup.sqlite3',private/'restored.sqlite3')
             assert backup['table_counts']==restore['table_counts'] and restore['mode']=='0o600'
             assert backup['table_counts']['operations_locationshare']==0
-            checks.append('Consistent SQLite snapshot restored with eleven table counts matching; active location samples excluded')
+            checks.append('Consistent SQLite snapshot restored with all tracked table counts matching; active location samples excluded')
             process.terminate();process.wait(timeout=10)
             env['DJANGO_DB_PATH']=str(private/'restored.sqlite3')
             manage('check');process=start_wsgi()
@@ -152,7 +152,7 @@ LocationShare.objects.create(job=j,user=o,token=uuid.uuid4(),started_at=timezone
             r,html=request(recovered,'/dispatcher/');assert '0.123456' not in html
             checks.append('Restored WSGI retained login, employee, allocation, CRM, maintenance and mapping; no location coordinates restored')
             report={'result':'passed','checks':checks,'warning_ids':sorted(set(expected_warnings)),'restored_table_counts':restore['table_counts'],'limits':['Loopback-only single-worker Gunicorn and ephemeral self-signed TLS proxy, not an internet host','SQLite only; no production storage or PostgreSQL validation','Fictional records and disposable credentials only; no client data, certificate, account or secret retained','No real client device, concurrency/load, independent penetration test or external backup storage verified']}
-            (ROOT/'evidence/v0.3-production-rehearsal.json').write_text(json.dumps(report,indent=2)+'\n')
+            (ROOT/'evidence/v0.6-production-rehearsal.json').write_text(json.dumps(report,indent=2)+'\n')
             print(json.dumps(report,indent=2))
         finally:
             proxy.shutdown();proxy.server_close();thread.join(timeout=5)

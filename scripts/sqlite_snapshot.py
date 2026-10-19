@@ -19,7 +19,7 @@ def inspect(connection):
     tables = {r[0] for r in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     if not REQUIRED.issubset(tables):
         raise ValueError("Not an initialized Powerline database: required tables missing")
-    tracked = REQUIRED | ({"operations_enquiry", "operations_servicejob", "operations_technicianaccess", "operations_locationshare"} & tables)
+    tracked = REQUIRED | ({"operations_enquiry", "operations_servicejob", "operations_technicianaccess", "operations_locationshare", "operations_accountsecurity"} & tables)
     return {t: connection.execute('SELECT count(*) FROM "' + t + '"').fetchone()[0] for t in sorted(tracked)}
 
 def snapshot(source, target):
