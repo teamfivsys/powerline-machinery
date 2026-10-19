@@ -1,0 +1,23 @@
+# Fictional-data demonstration only. No database resource: Render Free Postgres expires.
+services:
+  - type: web
+    name: powerline-demo
+    runtime: python
+    plan: free
+    autoDeployTrigger: off
+    buildCommand: ./scripts/build-render.sh
+    startCommand: ./scripts/start-render.sh
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.render
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DJANGO_ALLOWED_HOSTS
+        sync: false
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+# No cron, persistent disk, paid service, region, or secrets are provisioned here.
